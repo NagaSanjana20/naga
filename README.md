@@ -1,7 +1,8 @@
-##### firstly a Project Dierectory is created with the name "ocaml-lexer" and then a source file is created with the name "Lexical_Analyzer.ml" 
-##### Explaination - In this project, i have executed a lexical Analyzer in Ocaml that helps in processing an input string and classifies the given data into keywords, operators, punctuations, Integer literals, identifiers, Unknown tokens.
+##### This project is about a Lexical Analyzer able yo recognize the tokens from the input into categories like keywords, operators, punctuations, Integer literals, identifiers, Unknown tokens. It is implemented in Ocaml.
 
-#### Defining the token types as given
+##### firstly a Project Dierectory is created with the name "ocaml-lexer" and then a source file is created with the name "Lexical_Analyzer.ml" 
+
+#### Defining the token types
 type token =
   | Keyword of string
   | Operator of string
@@ -10,72 +11,49 @@ type token =
   | Identifier of string
   | Unknown of string
 
-#### Keywords 
-let keywords = ["if"; "else"; "while"; "let"; "in"; "then"]
+#### Keywords, operators and punctuation list
+  let keywords = ["if"; "else"; "while"; "let"; "in"; "then"]
+  let operators = ["+"; "-"; "*"; "/"; "=="; "!="; "="]
+  let punctuation = ["("; ")"; "{"; "}"; ";"]
 
-#### Operators
-  let operators = ["+"; "-"; "*"; "/"; "=="; "!="]
+#####  Explaination - All the keywords, Operators, punctuation symbols are defined which helps in recognizing them.
+
+#### Classifying the tokens
+let classify_token s =
+  if List.mem s keywords then Keyword s
+  else if List.mem s operators then Operator s
+  else if List.mem s punctuation then Punctuation s
+  else if Str.string_match (Str.regexp "^-?[0-9]+$") s 0 then IntLiteral (int_of_string s)
+  else if Str.string_match (Str.regexp "^[a-zA-Z_][a-zA-Z0-9_]*$") s 0 then Identifier s
+  else Unknown s
+
+#####  Explaination - 
+
+#### Spliting the input into tokens and seperates the punctuations
+  let split_input input =
+  let punct_regex = Str.regexp "\\([();{}]\\)" in
+  let spaced_input = Str.global_replace punct_regex " \\1 " input in
+  Str.split (Str.regexp "[ \t\n\r]+") spaced_input
   
-#### Punctuation symbols 
-  let punctuation = ['('; ')'; '{'; '}'; ';']
-
-#####  Explaination - All the keywords, Operators, punctuation symbols are defined.
-
-#### Checking whether the word is a keyword 
-let is_keyword word = List.mem word keywords
-
-#### Checking whether the word is an operator 
-  let is_operator word = List.mem word operators
-  
-#### Checking whether the given character is a punctuation symbol 
-  let is_punctuation ch = List.mem ch punctuation
-  
-#### Checking if a word is an integer literal 
-  let is_int_literal word =
-    try
-      ignore (int_of_string word); true
-    with Failure _ -> false
-    
-#### Tokenize the input string 
+#### Tokenize the input string and execution of the input
 let tokenize input =
-  let words = Str.split (Str.regexp "[ \t\n\r]+") input in
+  let split_words = split_input input in
+  List.map classify_token split_words
 
-  let rec classify tokens = function
-  | [] -> List.rev tokens  (* Reverse the list before returning *)
-  | w :: ws ->
-      let token =
-        if is_keyword w then Keyword w
-        else if is_operator w then Operator w
-        else if String.length w = 1 && is_punctuation w.[0] then Punctuation w.[0]
-        else if is_int_literal w then IntLiteral (int_of_string w)
-        else if Str.string_match (Str.regexp "[a-zA-Z_][a-zA-Z0-9_]*") w 0 then Identifier w
-        else Unknown w
-      in
-      classify (token :: tokens) ws
-in
-classify [] words
-
-##### Explaination - After defining, the token are checked and categorized to specific categories they are belonged to. As it checks by spliting the input string into words and checks each one whether it is the word is (checks in an order) keyword, operator, Punctuation, integer Literal, Identifier, Unknown tokens.
-
-#### Function for printing the tokens 
-let print_token = function
-  | Keyword w -> Printf.printf "Keyword: %s\n" w
-  | Operator w -> Printf.printf "Operator: %s\n" w
-  | Punctuation c -> Printf.printf "Punctuation: %c\n" c
-  | IntLiteral i -> Printf.printf "IntLiteral: %d\n" i
-  | Identifier w -> Printf.printf "Identifier: %s\n" w
-  | Unknown w -> Printf.printf "Unknown: %s\n" w
-
-#### Testcase 1: 
-  let () =
-  let input = "if x == 35 then { a = b + 9; } else { b = a - 1; }" in
+let () =
+  print_string "Enter input: ";
+  let input = read_line () in
   let tokens = tokenize input in
-  List.iter print_token tokens
-  
-#### Testcase 2:
-  let () =
-  let input = "$$$ invalid token" in
-  let tokens = tokenize input in
-  List.iter print_token tokens
+  List.iter (fun t ->
+    match t with
+    | Keyword k -> Printf.printf "Keyword: %s\n" k
+    | Operator o -> Printf.printf "Operator: %s\n" o
+    | Punctuation p -> Printf.printf "Punctuation: %s\n" p
+    | IntLiteral n -> Printf.printf "IntLiteral: %d\n" n
+    | Identifier id -> Printf.printf "Identifier: %s\n" id
+    | Unknown u -> Printf.printf "Unknown: %s\n" u
+  ) tokens
 
-##### explaination - then create a funtion to print the data in the required formal and define the function by inputing the string given i.e., Testcase 1 & 2. And then to complile the lexer give the "ocamlc str.cma Lexical_Analyzer.ml -o lexer" command in the ocaml and the run it by giving "./lexer" then the expected output is given.
+##### Explaination - After defining, the token are checked and categorized to specific categories they are belonged to. As it checks by spliting the input string into words and checks each one whether it is the word is (checks in an order) keyword, operator, Punctuation, integer Literal, Identifier, Unknown tokens. Then create a funtion to print the data in the required format. And to complile the lexer give the "ocamlc str.cma Lexical_Analyzer.ml -o lexer" command in the ocaml and the run it by giving "./lexer" then it shows "Enter the input", we can give the input we want to and we will get the expected output.
+
+##### As given in the assignment i have tested the two testcase along with two other examples. i have attached the screenshots pdf of the output we got in the ocaml along with this readme file. 
